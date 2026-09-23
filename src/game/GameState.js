@@ -230,7 +230,7 @@ class GameStateManager {
 
   completeLaser(successCount = 3) {
     if (!this.state.laserCompleted) {
-      const points = [0, 33, 66, 100][successCount] || 0;
+      const points = [-50, 0, 50, 100][successCount] || -50;
       this.addMinigameScore(points);
     }
     this.setState({
@@ -260,7 +260,7 @@ class GameStateManager {
 
   completeRGB(successCount = 3) {
     if (!this.state.rgbCompleted) {
-      const points = [0, 33, 66, 100][successCount] || 0;
+      const points = [-50, 0, 50, 100][successCount] || -50;
       this.addMinigameScore(points);
     }
     this.setState({
