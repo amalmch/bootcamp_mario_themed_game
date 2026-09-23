@@ -228,9 +228,10 @@ class GameStateManager {
     this.setState({ activeView: 'laser' });
   }
 
-  completeLaser() {
+  completeLaser(successCount = 3) {
     if (!this.state.laserCompleted) {
-      this.addMinigameScore(100);
+      const points = [0, 33, 66, 100][successCount] || 0;
+      this.addMinigameScore(points);
     }
     this.setState({
       laserCompleted: true,
@@ -257,9 +258,10 @@ class GameStateManager {
     this.setState({ activeView: 'rgb' });
   }
 
-  completeRGB() {
+  completeRGB(successCount = 3) {
     if (!this.state.rgbCompleted) {
-      this.addMinigameScore(100);
+      const points = [0, 33, 66, 100][successCount] || 0;
+      this.addMinigameScore(points);
     }
     this.setState({
       rgbCompleted: true,

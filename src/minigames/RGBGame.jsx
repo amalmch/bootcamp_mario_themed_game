@@ -56,12 +56,19 @@ export function RGBGame() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [solvedIndices, setSolvedIndices] = useState([]);
+  const [failedIndices, setFailedIndices] = useState([]);
+  const [attemptsMap, setAttemptsMap] = useState({});
 
   const riddle = RGB_RIDDLE_VARIANTS[variantIndex];
-  const allSolved = solvedIndices.length === RGB_RIDDLE_VARIANTS.length;
+  const isCurrentFailed = failedIndices.includes(variantIndex);
+  const isCurrentSolved = solvedIndices.includes(variantIndex);
+  const attempts = attemptsMap[variantIndex] || 0;
+  
+  const completedCount = solvedIndices.length + failedIndices.length;
+  const allCompleted = completedCount === RGB_RIDDLE_VARIANTS.length;
 
   const handleSelectOption = (opt) => {
-    if (isAnswered) return;
+    if (isAnswered || isCurrentSolved || isCurrentFailed) return;
     setSelectedColor(opt);
     setIsAnswered(true);
 
@@ -75,6 +82,23 @@ export function RGBGame() {
       }
     } else {
       audioManager.playWrong();
+      const newAttempts = attempts + 1;
+      setAttemptsMap(prev => ({ ...prev, [variantIndex]: newAttempts }));
+      if (newAttempts >= 2) {
+        setFailedIndices(prev => [...prev, variantIndex]);
+      }
+    }
+  };
+
+  const advanceToNext = () => {
+    if (allCompleted) return;
+    for (let i = 0; i < RGB_RIDDLE_VARIANTS.length; i++) {
+      if (!solvedIndices.includes(i) && !failedIndices.includes(i)) {
+        setVariantIndex(i);
+        setSelectedColor(null);
+        setIsAnswered(false);
+        return;
+      }
     }
   };
 
@@ -86,7 +110,7 @@ export function RGBGame() {
 
   const handleContinue = () => {
     audioManager.playClick();
-    gameState.completeRGB();
+    gameState.completeRGB(solvedIndices.length);
   };
 
 
@@ -213,28 +237,35 @@ export function RGBGame() {
             {isCorrect ? (
               <div className="mario-result-box mario-win-box">
                 <div className="win-headline">🌟 MAMMA MIA! COLOR RESTORED! 🌟</div>
-                {allSolved ? (
-                  <div className="win-passkey">PASSKEY: <strong>RGB-63</strong> (+100 POINTS)</div>
+                {allCompleted ? (
+                  <div className="win-passkey">PASSKEY: <strong>RGB-63</strong></div>
                 ) : (
-                  <div className="win-passkey">Nice job! Now complete the other {RGB_RIDDLE_VARIANTS.length - solvedIndices.length} riddle(s).</div>
+                  <div className="win-passkey">Nice job! Now complete the other {RGB_RIDDLE_VARIANTS.length - completedCount} riddle(s).</div>
                 )}
               </div>
             ) : (
               <div className="mario-result-box mario-fail-box">
                 <div className="fail-headline">🍄 OOPS! That was {selectedColor?.name}!</div>
-                <div className="fail-hint">Target was {riddle.name}. You must answer correctly to pass!</div>
+                <div className="fail-hint">
+                  Target was {riddle.name}. 
+                  {attempts < 2 ? ` You have ${2 - attempts} attempt(s) left!` : ' Riddle blocked! Moving on...'}
+                </div>
               </div>
             )}
 
-            {!isCorrect ? (
+            {!isCorrect && attempts < 2 ? (
               <button className="secondary-button mario-continue-btn" onClick={handleRetry} style={{ background: '#f59e0b', borderColor: '#d97706' }}>
-                🔄 TRY AGAIN
+                🔄 TRY AGAIN (1 Attempt Left)
               </button>
-            ) : allSolved ? (
+            ) : !allCompleted ? (
+              <button className="primary-button mario-continue-btn" onClick={advanceToNext}>
+                NEXT CHAMBER →
+              </button>
+            ) : (
               <button className="primary-button mario-continue-btn" onClick={handleContinue}>
                 CLAIM PASSKEY & UNLOCK GRAND COMPILER GATE →
               </button>
-            ) : null}
+            )}
           </div>
         )}
       </div>

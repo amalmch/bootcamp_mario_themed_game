@@ -133,50 +133,77 @@ const GRID = 6;
 
 export function LaserGame() {
   const [puzzleIdx, setPuzzleIdx] = useState(0);
-  const [mirrors, setMirrors] = useState(() =>
-    PUZZLES[0].mirrors.map(m => ({ ...m }))
-  );
-  // Track all solved puzzle indices in an array instead of Set to avoid React state issues
+  const [mirrors, setMirrors] = useState(() => PUZZLES[0].mirrors.map(m => ({ ...m })));
+  
   const [solvedIndices, setSolvedIndices] = useState([]);
+  const [failedIndices, setFailedIndices] = useState([]);
+  const [attemptsMap, setAttemptsMap] = useState({});
   const [moves, setMoves] = useState(0);
   const [showTip, setShowTip] = useState(false);
   const [flash, setFlash] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
 
   const puzzle = PUZZLES[puzzleIdx];
   const isCurrentSolved = solvedIndices.includes(puzzleIdx);
-  const allSolved = solvedIndices.length === PUZZLES.length;
+  const isCurrentFailed = failedIndices.includes(puzzleIdx);
+  const attempts = attemptsMap[puzzleIdx] || 0;
+  const completedCount = solvedIndices.length + failedIndices.length;
+  const allCompleted = completedCount === PUZZLES.length;
 
   useEffect(() => {
-    // If the puzzle is already solved, don't reset it to unsolved state,
-    // but we can reset the mirror rotations back to their starting position.
     setMirrors(puzzle.mirrors.map(m => ({ ...m })));
     setMoves(0);
     setShowTip(false);
+    setIsTesting(false);
   }, [puzzleIdx, puzzle.mirrors]);
 
   const { path, hitTarget } = traceLaser(puzzle, mirrors);
   const laserSet = buildLaserSet(path);
 
-  useEffect(() => {
-    if (hitTarget && !isCurrentSolved) {
-      setSolvedIndices(prev => [...prev, puzzleIdx]);
-      setFlash(true);
-      audioManager.playLaserSuccess?.();
-      setTimeout(() => setFlash(false), 800);
-    }
-  }, [hitTarget, isCurrentSolved, puzzleIdx]);
-
   const rotateMirror = (id) => {
-    if (isCurrentSolved) return;
+    if (isCurrentSolved || isCurrentFailed || isTesting) return;
     audioManager.playClick?.();
     setMoves(m => m + 1);
     setMirrors(prev => prev.map(m => m.id === id ? { ...m, angle: m.angle === 0 ? 1 : 0 } : m));
   };
 
+  const advanceToNext = () => {
+    if (allCompleted) return;
+    for (let i = 0; i < PUZZLES.length; i++) {
+      if (!solvedIndices.includes(i) && !failedIndices.includes(i)) {
+        setPuzzleIdx(i);
+        return;
+      }
+    }
+  };
+
+  const handleTestBeam = () => {
+    if (isCurrentSolved || isCurrentFailed || isTesting) return;
+    
+    audioManager.playClick?.();
+    const newAttempts = attempts + 1;
+    setAttemptsMap(prev => ({ ...prev, [puzzleIdx]: newAttempts }));
+    setIsTesting(true);
+
+    setTimeout(() => {
+      setIsTesting(false);
+      if (hitTarget) {
+        setSolvedIndices(prev => [...prev, puzzleIdx]);
+        setFlash(true);
+        audioManager.playLaserSuccess?.();
+        setTimeout(() => setFlash(false), 800);
+      } else {
+        audioManager.playWrong?.();
+        if (newAttempts >= 2) {
+          setFailedIndices(prev => [...prev, puzzleIdx]);
+        }
+      }
+    }, 1500); // beam visible for 1.5s
+  };
 
   const handleContinue = () => {
     audioManager.playClick();
-    gameState.completeLaser();
+    gameState.completeLaser(solvedIndices.length);
   };
 
   // Build flat cell array
@@ -252,7 +279,7 @@ export function LaserGame() {
                   );
                 }
 
-                if (cell.hasLaser && !cell.isWall) {
+                if (cell.hasLaser && !cell.isWall && (isTesting || isCurrentSolved || isCurrentFailed)) {
                   cls += isCurrentSolved ? ' lz-beam-hit' : ' lz-beam';
                 }
 
@@ -271,9 +298,14 @@ export function LaserGame() {
             </div>
 
             {/* Solved Banner for individual puzzle */}
-            {isCurrentSolved && !allSolved && (
+            {isCurrentSolved && !allCompleted && (
               <div style={{ color: '#10b981', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                ✅ Chamber Solved! Complete the other {PUZZLES.length - solvedIndices.length} to proceed.
+                ✅ Chamber Solved! Complete the other {PUZZLES.length - completedCount} to proceed.
+              </div>
+            )}
+            {isCurrentFailed && !allCompleted && (
+              <div style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                ❌ Chamber Blocked! Moving on to the next.
               </div>
             )}
 
@@ -282,9 +314,9 @@ export function LaserGame() {
               {mirrors.map(m => (
                 <button
                   key={m.id}
-                  className={`lz-mirror-btn ${isCurrentSolved ? 'lz-btn-off' : ''}`}
+                  className={`lz-mirror-btn ${isCurrentSolved || isCurrentFailed ? 'lz-btn-off' : ''}`}
                   onClick={() => rotateMirror(m.id)}
-                  disabled={isCurrentSolved}
+                  disabled={isCurrentSolved || isCurrentFailed || isTesting}
                 >
                   <span className="lz-btn-sym">{m.angle === 0 ? '╱' : '╲'}</span>
                   <span className="lz-btn-name">{m.name}</span>
@@ -294,6 +326,23 @@ export function LaserGame() {
 
             <div className="lz-moves">Moves: <strong>{moves}</strong></div>
 
+            {!isCurrentSolved && !isCurrentFailed && (
+              <button 
+                className="primary-button" 
+                style={{ width: '100%', margin: '10px 0', background: isTesting ? '#64748b' : '#ef4444' }} 
+                onClick={handleTestBeam}
+                disabled={isTesting}
+              >
+                {isTesting ? 'FIRING...' : `🔴 TEST FIRE (${2 - attempts} left)`}
+              </button>
+            )}
+
+            {!allCompleted && (isCurrentSolved || isCurrentFailed) && (
+              <button className="primary-button" style={{ width: '100%', margin: '10px 0' }} onClick={advanceToNext}>
+                NEXT CHAMBER →
+              </button>
+            )}
+
             <button className="lz-tip-btn" onClick={() => setShowTip(v => !v)}>
               {showTip ? '🙈 Hide tip' : '💡 Show tip'}
             </button>
@@ -302,12 +351,11 @@ export function LaserGame() {
               <div className="lz-tip animate-fade-in">{puzzle.tip}</div>
             )}
 
-            {allSolved && (
+            {allCompleted && (
               <div className="lz-success animate-scale-up">
                 <div className="lz-success-icon">🎉</div>
-                <div className="lz-success-text">ALL FIREWALLS BYPASSED!</div>
+                <div className="lz-success-text">FIREWALL SEQUENCE COMPLETE</div>
                 <div className="lz-success-key">PASSKEY: <strong>LASER-27</strong></div>
-                <div className="lz-success-sub">+100 pts · {moves} moves</div>
                 <button className="primary-button lz-continue" onClick={handleContinue}>
                   CONTINUE →
                 </button>
