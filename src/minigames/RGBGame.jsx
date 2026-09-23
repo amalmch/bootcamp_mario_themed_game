@@ -224,7 +224,6 @@ export function RGBGame() {
                 <div className="swatch-color-disc" style={{ backgroundColor: opt.color }} />
                 <div className="swatch-text-meta">
                   <div className="swatch-title-text">{opt.name}</div>
-                  <div className="swatch-val-text">RGB({opt.r}, {opt.g}, {opt.b})</div>
                 </div>
               </button>
             );
