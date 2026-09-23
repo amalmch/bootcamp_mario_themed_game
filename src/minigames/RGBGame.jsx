@@ -210,8 +210,8 @@ export function RGBGame() {
           {riddle.options.map((opt, idx) => {
             let itemClass = 'mario-swatch-card';
             if (isAnswered) {
-              if (opt.name === riddle.name) itemClass += ' swatch-winner';
-              else if (opt === selectedColor) itemClass += ' swatch-loser';
+              if (opt.name === riddle.name && isCorrect) itemClass += ' swatch-winner';
+              else if (opt === selectedColor && !isCorrect) itemClass += ' swatch-loser';
             }
 
             return (
@@ -246,8 +246,7 @@ export function RGBGame() {
               <div className="mario-result-box mario-fail-box">
                 <div className="fail-headline">🍄 OOPS! That was {selectedColor?.name}!</div>
                 <div className="fail-hint">
-                  Target was {riddle.name}. 
-                  {attempts < 2 ? ` You have ${2 - attempts} attempt(s) left!` : ' Riddle blocked! Moving on...'}
+                  {attempts < 2 ? `You have ${2 - attempts} attempt(s) left!` : 'Riddle blocked! Moving on...'}
                 </div>
               </div>
             )}
