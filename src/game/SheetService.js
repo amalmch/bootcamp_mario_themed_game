@@ -19,8 +19,8 @@
  * ============================================================
  */
 
-// ← PASTE YOUR APPS SCRIPT WEB APP URL HERE after deploying
-const SHEET_URL = import.meta.env.VITE_SHEET_URL || '';
+// Google Apps Script Web App URL (leaderboard)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbws0Q5Hb4yFaDrnemMqf6zmzmZlYxoEaCS9Xpw0v79U-F4SisRxhyGbxpAgje5hFw/exec';
 
 /**
  * Submit the player's result to the Google Sheet leaderboard.
