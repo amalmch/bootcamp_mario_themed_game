@@ -66,12 +66,6 @@ export function MainMenu() {
             ▶ START NEW GAME
           </button>
 
-          {hasSavedGame && (
-            <button className="secondary-button menu-btn" onClick={handleContinue}>
-              ⏩ CONTINUE ({state.teamName || 'Team'} • Level {state.currentWorld} • {state.score} PTS)
-            </button>
-          )}
-
           <button
             className="secondary-button menu-btn"
             onClick={() => {
