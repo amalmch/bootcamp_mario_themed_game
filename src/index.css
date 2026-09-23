@@ -2833,3 +2833,9 @@ html, body, #root {
 .mobile-controls-overlay * {
   -webkit-tap-highlight-color: transparent;
 }
+
+
+/* Fix Ending Screen Overflow */
+.ending-screen-container { overflow-y: auto !important; padding: 20px 10px !important; }
+.ending-card { max-height: max-content !important; overflow: visible !important; margin: 40px 0 !important; }
+

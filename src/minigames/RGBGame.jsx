@@ -53,23 +53,32 @@ const RGB_RIDDLE_VARIANTS = [
 export function RGBGame() {
   const [variantIndex, setVariantIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
+  
+  // Track correctly answered variants
+  const [completed, setCompleted] = useState(new Set());
+  const [flashWrong, setFlashWrong] = useState(false);
 
   const riddle = RGB_RIDDLE_VARIANTS[variantIndex];
+  const isCurrentSolved = completed.has(variantIndex);
+  const allSolved = completed.size === RGB_RIDDLE_VARIANTS.length;
 
   const handleSelectOption = (opt) => {
-    if (isAnswered) return;
+    if (isCurrentSolved) return;
     setSelectedColor(opt);
-    setIsAnswered(true);
 
     const correct = opt.name === riddle.name;
-    setIsCorrect(correct);
 
     if (correct) {
       audioManager.playCorrect();
+      setCompleted(prev => {
+        const next = new Set(prev);
+        next.add(variantIndex);
+        return next;
+      });
     } else {
       audioManager.playWrong();
+      setFlashWrong(true);
+      setTimeout(() => setFlashWrong(false), 800);
     }
   };
 
@@ -80,11 +89,12 @@ export function RGBGame() {
 
   return (
     <div
-      className="mario-minigame-viewport animate-fade-in"
+      className={`mario-minigame-viewport animate-fade-in ${flashWrong ? 'laser-flash-success' : ''}`}
       style={{
         backgroundImage: `linear-gradient(rgba(240, 249, 255, 0.88), rgba(254, 243, 199, 0.92)), url('/assets/backgrounds/Code Castle Background.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
+        filter: flashWrong ? 'hue-rotate(180deg)' : 'none',
       }}
     >
       <div className="mario-rgb-card animate-scale-up">
@@ -97,25 +107,32 @@ export function RGBGame() {
           TOAD, YOSHI & PEACH'S COLOR LOCK
         </h1>
         <p className="mario-game-subtitle">
-          Combine the Red, Green, and Blue frequency clues to restore color to the Code Castle!
+          {allSolved ? (
+            <span style={{ color: '#10b981', fontWeight: 'bold' }}>✅ All Colors Restored!</span>
+          ) : (
+            'Combine the Red, Green, and Blue frequency clues to restore ALL 3 colors!'
+          )}
         </p>
 
         {/* Puzzle Variants Selector */}
         <div className="mario-tabs-row">
-          {RGB_RIDDLE_VARIANTS.map((v, i) => (
-            <button
-              key={i}
-              className={`mario-tab-btn ${variantIndex === i ? 'mario-tab-active' : ''}`}
-              onClick={() => {
-                audioManager.playClick();
-                setVariantIndex(i);
-                setSelectedColor(null);
-                setIsAnswered(false);
-              }}
-            >
-              {v.title}
-            </button>
-          ))}
+          {RGB_RIDDLE_VARIANTS.map((v, i) => {
+            const isDone = completed.has(i);
+            return (
+              <button
+                key={i}
+                className={`mario-tab-btn ${variantIndex === i ? 'mario-tab-active' : ''}`}
+                style={isDone ? { borderColor: '#10b981', color: '#10b981' } : {}}
+                onClick={() => {
+                  audioManager.playClick();
+                  setVariantIndex(i);
+                  setSelectedColor(null);
+                }}
+              >
+                {v.title} {isDone && '✓'}
+              </button>
+            );
+          })}
         </div>
 
         {/* 3 Character Dialogue Clue Cards */}
@@ -173,9 +190,10 @@ export function RGBGame() {
         <div className="mario-swatches-grid">
           {riddle.options.map((opt, idx) => {
             let itemClass = 'mario-swatch-card';
-            if (isAnswered) {
+            if (isCurrentSolved) {
               if (opt.name === riddle.name) itemClass += ' swatch-winner';
-              else if (opt === selectedColor) itemClass += ' swatch-loser';
+            } else if (selectedColor === opt && !isCurrentSolved) {
+              itemClass += ' swatch-loser'; // flashed wrong
             }
 
             return (
@@ -183,7 +201,7 @@ export function RGBGame() {
                 key={idx}
                 className={itemClass}
                 onClick={() => handleSelectOption(opt)}
-                disabled={isAnswered}
+                disabled={isCurrentSolved}
               >
                 <div className="swatch-color-disc" style={{ backgroundColor: opt.color }} />
                 <div className="swatch-text-meta">
@@ -196,19 +214,20 @@ export function RGBGame() {
         </div>
 
         {/* Feedback & Continue */}
-        {isAnswered && (
+        {isCurrentSolved && !allSolved && (
+          <div className="mario-feedback-banner animate-slide-up" style={{ padding: '12px' }}>
+             <div className="mario-result-box mario-win-box" style={{ margin: 0, padding: '10px' }}>
+                <div className="win-headline" style={{ fontSize: '1rem' }}>🌟 Correct! Select the next puzzle tab. 🌟</div>
+             </div>
+          </div>
+        )}
+
+        {allSolved && (
           <div className="mario-feedback-banner animate-slide-up">
-            {isCorrect ? (
-              <div className="mario-result-box mario-win-box">
-                <div className="win-headline">🌟 MAMMA MIA! COLOR RESTORED! 🌟</div>
-                <div className="win-passkey">PASSKEY: <strong>RGB-63</strong> (+100 POINTS)</div>
-              </div>
-            ) : (
-              <div className="mario-result-box mario-fail-box">
-                <div className="fail-headline">🍄 OOPS! That was {selectedColor?.name}!</div>
-                <div className="fail-hint">Target was {riddle.name} — Passkey unlocked anyway!</div>
-              </div>
-            )}
+            <div className="mario-result-box mario-win-box">
+              <div className="win-headline">🌟 MAMMA MIA! ALL COLORS RESTORED! 🌟</div>
+              <div className="win-passkey">PASSKEY: <strong>RGB-63</strong> (+100 POINTS)</div>
+            </div>
 
             <button className="primary-button mario-continue-btn" onClick={handleContinue}>
               CLAIM PASSKEY & UNLOCK GRAND COMPILER GATE →
