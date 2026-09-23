@@ -136,39 +136,35 @@ export function LaserGame() {
   const [mirrors, setMirrors] = useState(() =>
     PUZZLES[0].mirrors.map(m => ({ ...m }))
   );
-  
-  // Track which puzzles have been solved
-  const [completed, setCompleted] = useState(new Set());
+  // Track all solved puzzle indices in an array instead of Set to avoid React state issues
+  const [solvedIndices, setSolvedIndices] = useState([]);
   const [moves, setMoves] = useState(0);
   const [showTip, setShowTip] = useState(false);
   const [flash, setFlash] = useState(false);
 
   const puzzle = PUZZLES[puzzleIdx];
-  const isCurrentSolved = completed.has(puzzle.id);
-  const allSolved = completed.size === PUZZLES.length;
+  const isCurrentSolved = solvedIndices.includes(puzzleIdx);
+  const allSolved = solvedIndices.length === PUZZLES.length;
 
   useEffect(() => {
-    // When switching puzzles, initialize mirrors for that puzzle
+    // If the puzzle is already solved, don't reset it to unsolved state,
+    // but we can reset the mirror rotations back to their starting position.
     setMirrors(puzzle.mirrors.map(m => ({ ...m })));
     setMoves(0);
     setShowTip(false);
-  }, [puzzleIdx]);
+  }, [puzzleIdx, puzzle.mirrors]);
 
   const { path, hitTarget } = traceLaser(puzzle, mirrors);
   const laserSet = buildLaserSet(path);
 
   useEffect(() => {
     if (hitTarget && !isCurrentSolved) {
-      setCompleted(prev => {
-        const next = new Set(prev);
-        next.add(puzzle.id);
-        return next;
-      });
+      setSolvedIndices(prev => [...prev, puzzleIdx]);
       setFlash(true);
       audioManager.playLaserSuccess?.();
       setTimeout(() => setFlash(false), 800);
     }
-  }, [hitTarget, isCurrentSolved, puzzle.id]);
+  }, [hitTarget, isCurrentSolved, puzzleIdx]);
 
   const rotateMirror = (id) => {
     if (isCurrentSolved) return;
@@ -176,6 +172,7 @@ export function LaserGame() {
     setMoves(m => m + 1);
     setMirrors(prev => prev.map(m => m.id === id ? { ...m, angle: m.angle === 0 ? 1 : 0 } : m));
   };
+
 
   const handleContinue = () => {
     audioManager.playClick();
@@ -203,36 +200,27 @@ export function LaserGame() {
         <div className="lz-topbar">
           <div className="lz-badge">🔴 OPTICAL FIREWALL</div>
           <div className="lz-tabs">
-            {PUZZLES.map((p, i) => {
-              const isDone = completed.has(p.id);
-              return (
-                <button
-                  key={p.id}
-                  className={`lz-tab ${puzzleIdx === i ? 'lz-tab-on' : ''}`}
-                  style={puzzleIdx === i ? { borderColor: p.accentColor, color: p.accentColor } : {}}
-                  onClick={() => { audioManager.playClick?.(); setPuzzleIdx(i); }}
-                >
-                  <span className="lz-diff-dot" style={{ background: p.diffColor }} />
-                  {p.name} {isDone && '✓'}
-                </button>
-              );
-            })}
+            {PUZZLES.map((p, i) => (
+              <button
+                key={p.id}
+                className={`lz-tab ${puzzleIdx === i ? 'lz-tab-on' : ''}`}
+                style={puzzleIdx === i ? { borderColor: p.accentColor, color: p.accentColor } : {}}
+                onClick={() => { audioManager.playClick?.(); setPuzzleIdx(i); }}
+              >
+                <span className="lz-diff-dot" style={{ background: p.diffColor }} />
+                {p.name}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* ── INSTRUCTION (1 line) ── */}
         <div className="lz-instruction">
-          {allSolved ? (
-            <span style={{ color: '#10b981', fontWeight: 'bold' }}>✅ Firewall completely bypassed! Claim your passkey.</span>
-          ) : (
-            <>
-              <strong>🔴</strong> = Emitter&nbsp;&nbsp;
-              <strong>🎯</strong> = Target&nbsp;&nbsp;
-              <span className="lz-sym">╱╲</span> = Mirror (click to flip)&nbsp;&nbsp;
-              <span className="lz-wall-icon">▪</span> = Wall
-              &nbsp;&nbsp;→ Fix ALL 3 chambers!
-            </>
-          )}
+          <strong>🔴</strong> = Emitter&nbsp;&nbsp;
+          <strong>🎯</strong> = Target&nbsp;&nbsp;
+          <span className="lz-sym">╱╲</span> = Mirror (click to flip)&nbsp;&nbsp;
+          <span className="lz-wall-icon">▪</span> = Wall
+          &nbsp;&nbsp;→ Get the laser to the target!
         </div>
 
         {/* ── MAIN LAYOUT: Grid left, Controls right ── */}
@@ -282,6 +270,13 @@ export function LaserGame() {
               </div>
             </div>
 
+            {/* Solved Banner for individual puzzle */}
+            {isCurrentSolved && !allSolved && (
+              <div style={{ color: '#10b981', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                ✅ Chamber Solved! Complete the other {PUZZLES.length - solvedIndices.length} to proceed.
+              </div>
+            )}
+
             <div className="lz-section-label">🔄 MIRRORS — click to flip:</div>
             <div className="lz-mirror-btns">
               {mirrors.map(m => (
@@ -307,21 +302,14 @@ export function LaserGame() {
               <div className="lz-tip animate-fade-in">{puzzle.tip}</div>
             )}
 
-            {isCurrentSolved && !allSolved && (
-               <div className="lz-success animate-scale-up" style={{ padding: '8px' }}>
-                 <div className="lz-success-text" style={{ fontSize: '0.85rem' }}>✅ Chamber Solved!</div>
-                 <div className="lz-success-sub">Move to the next chamber!</div>
-               </div>
-            )}
-
             {allSolved && (
               <div className="lz-success animate-scale-up">
                 <div className="lz-success-icon">🎉</div>
-                <div className="lz-success-text">ALL CHAMBERS SOLVED!</div>
+                <div className="lz-success-text">ALL FIREWALLS BYPASSED!</div>
                 <div className="lz-success-key">PASSKEY: <strong>LASER-27</strong></div>
-                <div className="lz-success-sub">+100 pts</div>
+                <div className="lz-success-sub">+100 pts · {moves} moves</div>
                 <button className="primary-button lz-continue" onClick={handleContinue}>
-                  CLAIM PASSKEY & CONTINUE →
+                  CONTINUE →
                 </button>
               </div>
             )}

@@ -90,11 +90,11 @@ class GameStateManager {
 
   // ------ Final score calculation ------
   // Score = minigameScore + (bitsCollected * 5) + timeBonus
-  // timeBonus = max(0, 1000 - Math.floor(elapsedSeconds / 10))
+  // timeBonus decreases by 1 every 2 seconds, starting from 600
   computeFinalScore() {
     const elapsedMs = this.getElapsedMs();
     const elapsedSec = Math.floor(elapsedMs / 1000);
-    const timeBonus = Math.max(0, 1000 - Math.floor(elapsedSec / 10));
+    const timeBonus = Math.max(0, 600 - Math.floor(elapsedSec / 2));
     const finalScore =
       this.state.minigameScore +
       this.state.bitsCollected * 5 +
