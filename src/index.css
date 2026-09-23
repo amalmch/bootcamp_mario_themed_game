@@ -2304,3 +2304,341 @@ html, body, #root {
   border: 1px solid rgba(100, 116, 139, 0.3);
   color: #94a3b8;
 }
+
+/* ===================================================
+   MOBILE VIRTUAL JOYSTICK & ACTION BUTTONS
+   =================================================== */
+.mobile-controls-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 160px;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 20px 20px 20px;
+  pointer-events: none;
+}
+
+.mobile-joystick-zone {
+  pointer-events: all;
+}
+
+.mobile-joystick-base {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(4px);
+  position: relative;
+  touch-action: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.mobile-joystick-knob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2px solid rgba(255,255,255,0.9);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  transition: transform 0.05s ease;
+  pointer-events: none;
+}
+
+.mobile-action-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: all;
+}
+
+.mobile-btn {
+  border-radius: 50px;
+  border: 3px solid rgba(255,255,255,0.4);
+  font-family: var(--font-retro);
+  font-size: 0.65rem;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: all 0.1s ease;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mobile-btn:active {
+  transform: scale(0.92);
+}
+
+.mobile-jump-btn {
+  background: rgba(72, 187, 120, 0.75);
+  color: #fff;
+  padding: 14px 22px;
+  box-shadow: 0 4px 0 #1c4532, 0 6px 18px rgba(0,0,0,0.4);
+}
+
+.mobile-run-btn {
+  background: rgba(236, 201, 75, 0.75);
+  color: #78350f;
+  padding: 12px 18px;
+  box-shadow: 0 4px 0 #975a16, 0 6px 18px rgba(0,0,0,0.4);
+}
+
+/* ===================================================
+   RESPONSIVE BREAKPOINTS
+   =================================================== */
+
+/* ---- TABLET (≤ 768px) ---- */
+@media (max-width: 768px) {
+  :root { font-size: 14px; }
+
+  /* HUD */
+  .hud-container {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .hud-top-left, .hud-top-right {
+    max-width: 140px;
+  }
+  .hud-world-title { font-size: 0.45rem; }
+  .hud-team-name   { font-size: 0.5rem; }
+  .score-value     { font-size: 1rem; }
+  .hud-live-timer  { padding: 3px 8px; }
+  .timer-value     { font-size: 1rem; }
+  .hud-top-center  { gap: 2px; }
+  .quest-label     { font-size: 0.5rem; }
+  .quest-desc      { font-size: 0.7rem; }
+  .passkeys-inventory { display: none; }
+  .hud-audio-controls { gap: 4px; }
+  .audio-btn { font-size: 0.55rem; padding: 5px 8px; }
+  .hud-controls-helper { display: none; }
+  .interaction-prompt-banner { font-size: 0.75rem; padding: 8px 14px; }
+
+  /* Main Menu */
+  .menu-hero-img { width: 70px !important; }
+  .menu-main-title { font-size: 1.6rem; }
+  .menu-subtitle   { font-size: 0.75rem; }
+  .menu-button-group { gap: 10px; }
+  .primary-button, .secondary-button { font-size: 0.65rem; padding: 11px 20px; }
+  .menu-acm-badge { font-size: 0.6rem; }
+
+  /* Team modal */
+  .team-name-modal { padding: 24px 20px; gap: 16px; }
+  .team-modal-title { font-size: 0.95rem; }
+  .team-modal-char-img { width: 52px; height: 52px; }
+
+  /* Story / Dialogue */
+  .ue-dialogue-box { width: 95%; padding: 16px 18px; min-height: 130px; }
+  .ue-speaker-name { font-size: 1rem; }
+  .ue-dialogue-text { font-size: 1.05rem; max-width: 100%; }
+  .ue-actor-img { height: 220px; }
+  .ue-character-actor { right: 5%; bottom: 145px; }
+  .ue-next-btn { font-size: 0.7rem; padding: 10px 18px; }
+
+  /* Binary Game */
+  .ue-binary-title { font-size: 1.6rem; }
+  .ue-binary-question { font-size: 1.4rem; }
+  .ue-block-btn { width: 80px; height: 78px; font-size: 1.6rem; }
+  .ue-binary-options-row { gap: 18px; }
+
+  /* Passkey Modal */
+  .passkey-modal-box { padding: 28px 20px; gap: 12px; }
+  .passkey-title { font-size: 1rem; }
+  .code-text { font-size: 1.8rem; }
+
+  /* RGB Game */
+  .mario-rgb-card, .mario-final-card {
+    padding: 16px 14px;
+    gap: 10px;
+    border-width: 3px;
+  }
+  .mario-game-title { font-size: 0.95rem; }
+  .mario-clues-row { grid-template-columns: 1fr; gap: 8px; }
+  .mario-swatches-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mario-tabs-row { gap: 6px; }
+  .mario-tab-btn { font-size: 0.55rem; padding: 6px 10px; }
+  .avatar-circle { width: 54px; height: 54px; }
+  .mario-avatar-img { width: 46px; height: 46px; }
+  .mario-rgb-summary-pill { flex-wrap: wrap; justify-content: center; }
+
+  /* Laser Game */
+  .laser-game-layout { padding: 14px 16px; gap: 10px; }
+  .laser-3d-viewport { height: 240px; }
+  .mirror-controls-bar { gap: 6px; }
+  .mirror-rotate-button { font-size: 0.6rem; padding: 8px 12px; }
+
+  /* Final Game */
+  .mario-hero-speech-banner { flex-direction: column; gap: 8px; }
+  .mario-passkeys-row { flex-direction: column; gap: 8px; }
+  .mario-actions-bar { flex-direction: column; }
+  .autofill-btn, .compile-run-btn { font-size: 0.65rem; }
+
+  /* Ending Screen */
+  .ending-card { padding: 24px 16px; gap: 14px; }
+  .ending-title { font-size: 1.1rem; }
+  .score-breakdown-table { max-width: 100%; }
+  .score-row-item { font-size: 0.8rem; }
+  .final-score-display { font-size: 1.8rem; }
+
+  /* Pause menu */
+  .pause-menu-card { padding: 24px 18px; gap: 12px; }
+  .pause-stats-row { gap: 10px; padding: 10px 14px; }
+
+  /* How To Play */
+  .how-to-play-card { padding: 24px 18px; }
+  .htp-grid { grid-template-columns: 1fr; gap: 8px; }
+}
+
+/* ---- MOBILE (≤ 480px) ---- */
+@media (max-width: 480px) {
+  :root { font-size: 13px; }
+
+  /* HUD collapses to 2-row layout */
+  .hud-container {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  .hud-top-left {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 100%;
+  }
+  .hud-top-center { order: -1; width: 100%; }
+  .hud-top-right  { width: 100%; }
+  .quest-desc { font-size: 0.65rem; }
+
+  /* Stack audio buttons */
+  .hud-audio-controls { justify-content: flex-end; }
+
+  /* Main Menu */
+  .menu-characters-row { gap: 8px; }
+  .menu-hero-img { width: 55px !important; }
+  .menu-main-title { font-size: 1.3rem; letter-spacing: 0.04em; }
+  .menu-button-group { gap: 8px; }
+  .menu-btn { width: 100%; max-width: 300px; font-size: 0.6rem; padding: 12px; }
+
+  /* Story Cards */
+  .ue-actor-img { height: 160px; }
+  .ue-character-actor { right: 2%; bottom: 125px; }
+  .ue-dialogue-box { width: 98%; padding: 14px 14px 40px; min-height: 110px; }
+  .ue-speaker-name { font-size: 0.85rem; margin-bottom: 8px; }
+  .ue-dialogue-text { font-size: 0.9rem; }
+
+  /* Binary Game */
+  .ue-binary-stage { padding: 16px; }
+  .ue-binary-title { font-size: 1.2rem; margin-bottom: 12px; }
+  .ue-binary-question { font-size: 1.1rem; margin-bottom: 24px; }
+  .ue-block-btn { width: 68px; height: 68px; font-size: 1.3rem; }
+  .ue-binary-options-row { gap: 12px; }
+
+  /* RGB Game - fully stacked */
+  .mario-minigame-viewport { padding: 8px; }
+  .mario-rgb-card, .mario-final-card {
+    max-width: 100%;
+    padding: 12px 10px;
+    border-radius: 14px;
+  }
+  .mario-game-title { font-size: 0.8rem; }
+  .mario-game-subtitle { font-size: 0.8rem; }
+  .mario-clues-row { grid-template-columns: 1fr; }
+  .mario-clue-box { padding: 10px 8px; }
+  .mario-clue-bubble { font-size: 0.78rem; }
+  .mario-swatches-grid { grid-template-columns: 1fr; gap: 8px; }
+  .swatch-color-disc { width: 38px; height: 38px; }
+  .mario-rgb-summary-pill { gap: 4px; padding: 6px 10px; }
+  .channel-chip { font-size: 0.65rem; padding: 4px 8px; }
+
+  /* Final Game */
+  .mario-final-form { gap: 10px; }
+  .passkey-chip { padding: 8px 10px; }
+  .chip-code { font-size: 0.85rem; }
+
+  /* Passkey Modal */
+  .passkey-modal-box { padding: 22px 14px; }
+  .passkey-title { font-size: 0.85rem; }
+  .code-text { font-size: 1.5rem; }
+  .passkey-code-display { padding: 12px 20px; }
+  .passkey-continue-btn { font-size: 0.65rem; padding: 12px; }
+
+  /* Ending Screen */
+  .ending-card { padding: 18px 12px; }
+  .ending-title { font-size: 0.95rem; }
+  .epilogue-dialogue-box { padding: 12px 14px; gap: 8px; }
+  .epilogue-bubble { font-size: 0.85rem; }
+  .final-score-display { font-size: 1.6rem; }
+  .ending-buttons-row { flex-direction: column; gap: 8px; }
+  .ending-btn { padding: 12px; }
+
+  /* Pause */
+  .pause-menu-card { padding: 18px 14px; }
+  .pause-title { font-size: 1.1rem; }
+  .pause-button-list { gap: 8px; }
+  .pause-btn-action { padding: 12px; font-size: 0.6rem; }
+
+  /* Team Modal */
+  .team-name-modal { padding: 20px 16px; gap: 14px; }
+  .team-modal-title { font-size: 0.85rem; }
+  .team-modal-chars { gap: 10px; }
+  .team-modal-char-img { width: 44px; height: 44px; }
+  .team-name-input { font-size: 0.85rem; padding: 11px 12px; }
+
+  /* How to play */
+  .how-to-play-card { padding: 20px 14px; max-width: 98%; }
+  .htp-title { font-size: 0.9rem; }
+
+  /* Laser */
+  .laser-game-layout { padding: 10px 10px; }
+  .laser-3d-viewport { height: 180px; }
+
+  /* Mobile joystick */
+  .mobile-controls-overlay { height: 140px; padding: 0 14px 14px; }
+  .mobile-joystick-base { width: 90px; height: 90px; }
+  .mobile-joystick-knob { width: 40px; height: 40px; }
+  .mobile-jump-btn { padding: 12px 18px; }
+  .mobile-run-btn  { padding: 10px 14px; }
+}
+
+/* ---- SMALL PHONE (≤ 360px) ---- */
+@media (max-width: 360px) {
+  .menu-main-title { font-size: 1.1rem; }
+  .menu-hero-img   { width: 44px !important; }
+  .ue-block-btn    { width: 58px; height: 58px; font-size: 1.1rem; }
+  .mario-game-title { font-size: 0.7rem; }
+  .code-text { font-size: 1.3rem; }
+  .final-score-display { font-size: 1.4rem; }
+}
+
+/* ---- LANDSCAPE MOBILE (height < 500px) ---- */
+@media (max-height: 500px) and (orientation: landscape) {
+  .ue-actor-img { height: 120px; }
+  .ue-character-actor { bottom: 115px; }
+  .ue-dialogue-box { min-height: 90px; padding: 10px 14px 36px; }
+  .ue-dialogue-text { font-size: 0.85rem; }
+
+  .mario-rgb-card, .mario-final-card { overflow-y: auto; max-height: 90vh; }
+  .mario-clues-row { grid-template-columns: repeat(3, 1fr); }
+  .mario-swatches-grid { grid-template-columns: repeat(2, 1fr); }
+  .mario-hero-speech-banner { flex-direction: row; }
+  .mario-passkeys-row { flex-direction: row; }
+
+  .ending-card { overflow-y: auto; max-height: 92vh; }
+  .mobile-controls-overlay { height: 120px; }
+}
+
+/* Prevent text selection on all interactive game elements */
+.mario-rgb-card *, .mario-final-card *,
+.ue-binary-stage *, .laser-game-layout *,
+.mobile-controls-overlay * {
+  -webkit-tap-highlight-color: transparent;
+}

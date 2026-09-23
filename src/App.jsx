@@ -10,16 +10,24 @@ import PasskeyModal from './ui/PasskeyModal.jsx';
 import PauseMenu from './ui/PauseMenu.jsx';
 import EndingScreen from './ui/EndingScreen.jsx';
 import WorldTransitionOverlay from './ui/WorldTransitionOverlay.jsx';
+import MobileControls from './ui/MobileControls.jsx';
 
 import BinaryGame from './minigames/BinaryGame.jsx';
 import LaserGame from './minigames/LaserGame.jsx';
 import RGBGame from './minigames/RGBGame.jsx';
 import FinalGame from './minigames/FinalGame.jsx';
 
+// Detect mobile/touch device
+const isMobile = () =>
+  typeof window !== 'undefined' &&
+  ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 768);
+
 export function App() {
   const threeContainerRef = useRef(null);
   const engineRef = useRef(null);
+  const playerControllerRef = useRef(null);
   const [state, setState] = useState(gameState.getState());
+  const [mobile, setMobile] = useState(isMobile());
 
   // Subscribe to central state
   useEffect(() => {
@@ -29,16 +37,26 @@ export function App() {
     return unsub;
   }, []);
 
+  // Detect orientation/resize changes for mobile detection
+  useEffect(() => {
+    const handleResize = () => setMobile(isMobile());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Initialize Three.js Engine once container is mounted
   useEffect(() => {
     if (threeContainerRef.current && !engineRef.current) {
       engineRef.current = new ThreeEngine(threeContainerRef.current);
+      // Expose playerController ref for mobile controls
+      playerControllerRef.current = engineRef.current.playerController;
     }
 
     return () => {
       if (engineRef.current) {
         engineRef.current.destroy();
         engineRef.current = null;
+        playerControllerRef.current = null;
       }
     };
   }, []);
@@ -75,6 +93,11 @@ export function App() {
       {/* Persistent Gameplay HUD */}
       {state.activeView === 'playing' && <HUD />}
 
+      {/* Mobile Virtual Controls (only during gameplay on touch devices) */}
+      {state.activeView === 'playing' && mobile && !state.isPaused && (
+        <MobileControls playerControllerRef={playerControllerRef} />
+      )}
+
       {/* Main Menu Screen */}
       {state.activeView === 'menu' && <MainMenu />}
 
@@ -86,9 +109,9 @@ export function App() {
 
       {/* Dynamic Mini-Games */}
       {state.activeView === 'binary' && <BinaryGame />}
-      {state.activeView === 'laser' && <LaserGame />}
-      {state.activeView === 'rgb' && <RGBGame />}
-      {state.activeView === 'final' && <FinalGame />}
+      {state.activeView === 'laser'  && <LaserGame />}
+      {state.activeView === 'rgb'    && <RGBGame />}
+      {state.activeView === 'final'  && <FinalGame />}
 
       {/* Glowing Passkey Modal */}
       {state.activeView === 'passkey' && state.passkeyToShow && (
